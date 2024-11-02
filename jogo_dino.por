@@ -32,24 +32,28 @@ programa
 	const inteiro LARGURA_DINO = 94
 	const inteiro DIMENSAO_COLISAO_DINO = 60
 	const inteiro POSICAO_X_DINO_INICIAL = 50
+	const inteiro FATOR_ANIMACAO_DINO = 15
 	inteiro posicao_x_dino = POSICAO_X_DINO_INICIAL, posicao_y_dino = ALTURA_CHAO - ALTURA_DINO
 	logico pulando = falso
 	const inteiro ALTURA_MAXIMA_PULO = 100
 	const inteiro VELOCIDADE_PULO = 850
 	const inteiro VELOCIDADE_QUEDA = 450
-	inteiro grafico_dino = 0
 	logico colidindo = falso
+	inteiro grafico_dino_pulando = 0
+	inteiro grafico_dino_caminhando = 0
+	inteiro enquadramento_animacao_dino = 0
 
 	// OBSTÁCULO
-	const inteiro ALTURA_OBSTACULO = 60
-	const inteiro LARGURA_OBSTACULO = 30
+	const inteiro ALTURA_OBSTACULO = 50
+	const inteiro LARGURA_OBSTACULO = 25
 	const inteiro POSICAO_X_OBSTACULO_LIMITE = -20
 	const inteiro VELOCIDADE_INICIAL_OBSTACULO = 150
 	const inteiro INTERVALO_AUMENTO_VELOCIDADE = 200
 	const inteiro FATOR_AUMENTO_VELOCIDADE = 50
 	inteiro posicao_x_obstaculo = LARGURA_TELA
-	inteiro posicao_y_obstaculo = ALTURA_CHAO - ALTURA_OBSTACULO
+	inteiro posicao_y_obstaculo = ALTURA_CHAO - ALTURA_OBSTACULO + 6
 	inteiro velocidade_obstaculo = VELOCIDADE_INICIAL_OBSTACULO
+	inteiro grafico_obstaculo = 0
 
 	// PONTUAÇÃO
 	inteiro pontuacao = 0
@@ -96,8 +100,9 @@ programa
 	}
 
 	funcao carrega_imagens() {
-		grafico_dino = g.carregar_imagem(DIR_GRAFICOS + "/sprite_dino_parado.png")
-		grafico_dino = g.redimensionar_imagem(grafico_dino, LARGURA_DINO, ALTURA_DINO, verdadeiro)
+		grafico_dino_caminhando = g.carregar_imagem(DIR_GRAFICOS + "/sprites_dino.png")		
+		grafico_dino_pulando = g.carregar_imagem(DIR_GRAFICOS + "/sprite_dino_parado.png")
+		grafico_obstaculo = g.carregar_imagem(DIR_GRAFICOS + "/sprite_obstaculo.png")
 	}
 
 	
@@ -132,7 +137,9 @@ programa
 	}
 
 	funcao liberar_imagens() {
-		g.liberar_imagem(grafico_dino)
+		g.liberar_imagem(grafico_dino_pulando)
+		g.liberar_imagem(grafico_dino_caminhando)
+		g.liberar_imagem(grafico_obstaculo)
 	}
 	// FIM FUNÇÕES DE CONFIGURAÇÃO
 
@@ -175,13 +182,13 @@ programa
 		// pinta fundo de branco
 		g.definir_cor(g.COR_BRANCO)
 		g.limpar()
-
+		
 		// desenha chão
 		g.definir_cor(g.COR_PRETO)
 		g.desenhar_linha(0, ALTURA_CHAO, LARGURA_TELA, ALTURA_CHAO)
 
 		// desenha obstáculo
-		g.desenhar_retangulo(posicao_x_obstaculo, posicao_y_obstaculo, LARGURA_OBSTACULO, ALTURA_OBSTACULO, falso, verdadeiro)
+		g.desenhar_imagem(posicao_x_obstaculo, posicao_y_obstaculo, grafico_obstaculo)
 
 		// desenha pontuação
 		g.definir_tamanho_texto(TAMANHO_TEXTO_PONTUACAO)
@@ -192,13 +199,12 @@ programa
 			g.desenhar_texto(10, 30, "Colidindo: " + tp.logico_para_cadeia(colidindo))
 		}
 		
-		// desenha dino
-		g.desenhar_imagem(posicao_x_dino, posicao_y_dino, grafico_dino)
+		desenha_dino()
 
 		// exibe mensagem de fim de jogo
 		se (fim_jogo) {
 			g.definir_tamanho_texto(TAMANHO_TEXTO_FIM_JOGO)
-			g.desenhar_texto(POSICAO_TEXTO_FIM_JOGO, POSICAO_TEXTO_FIM_JOGO, "FIM DE JOGO!")
+			g.desenhar_texto(POSICAO_TEXTO_FIM_JOGO, POSICAO_TEXTO_FIM_JOGO, "FIM DE JOGO")
 			g.definir_tamanho_texto(TAMANHO_TEXTO_PONTUACAO)
 			g.desenhar_texto(POSICAO_TEXTO_FIM_JOGO - 50, POSICAO_TEXTO_FIM_JOGO + 50, "Aperte [ ESPAÇO ] para jogar novamente")
 		}
@@ -222,6 +228,26 @@ programa
 
 			se (posicao_y_dino >= ALTURA_CHAO - ALTURA_DINO) {	
 				posicao_y_dino = ALTURA_CHAO - ALTURA_DINO
+			}
+		}
+	}
+
+	funcao desenha_dino() {
+		anima_dino()
+		
+		se (nao dino_no_chao()) {
+			g.desenhar_imagem(posicao_x_dino, posicao_y_dino, grafico_dino_pulando)
+		} senao {
+			g.desenhar_porcao_imagem(posicao_x_dino, posicao_y_dino, enquadramento_animacao_dino, 0, LARGURA_DINO, ALTURA_DINO, grafico_dino_caminhando)
+		}
+	}
+
+	funcao anima_dino() {
+		se (pontuacao % FATOR_ANIMACAO_DINO == 0) {
+			se (enquadramento_animacao_dino == 0) {
+				enquadramento_animacao_dino = LARGURA_DINO
+			} senao {
+				enquadramento_animacao_dino = 0
 			}
 		}
 	}
@@ -275,7 +301,7 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 4786; 
+ * @POSICAO-CURSOR = 4738; 
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
