@@ -8,15 +8,17 @@ programa
 
 	// CONFIG
 	const inteiro LARGURA_TELA = 800, ALTURA_TELA = 600
-	const logico DEBUG = falso
 	const cadeia DIR_GRAFICOS = "./graficos"
 	const cadeia DIR_SONS = "./sons"
+
+	// DEBUG
+	const logico DEBUG = falso
+	real fps = 0.0
 	
 	// FPS
 	const inteiro FPS = 60
 	inteiro taxa_quadro_alvo = (1000 / FPS)
 	inteiro tempo_ultimo_quadro = 0
-	real fps = 0.0
 
 	// ESTADO DO JOGO
 	logico fim_jogo = falso
@@ -88,6 +90,7 @@ programa
 
 	// INÍCIO FUNÇÕES DE CONFIGURAÇÃO
 	funcao inicializa_jogo() {
+		tempo_ultimo_quadro = u.tempo_decorrido()
 		cria_janela()
 		carrega_imagens()
 		carrega_sons()
@@ -172,7 +175,9 @@ programa
 
 			aumenta_velocidade_obstaculo()
 	
-			fps = 1.0 / delta
+			se (DEBUG) {
+				fps = 1.0 / delta
+			}
 		} senao {
 			fim_jogo = verdadeiro
 		}
@@ -194,15 +199,15 @@ programa
 		g.definir_tamanho_texto(TAMANHO_TEXTO_PONTUACAO)
 		g.desenhar_texto(POSICAO_X_PONTUACAO, POSICAO_Y_PONTUACAO, tp.inteiro_para_cadeia(pontuacao, 10))
 		
-		se (DEBUG) {
+		se (DEBUG) {			
 			g.desenhar_texto(10, 10, "FPS: " + tp.real_para_inteiro(fps))
-			g.desenhar_texto(10, 30, "Colidindo: " + tp.logico_para_cadeia(colidindo))
 		}
 		
 		desenha_dino()
 
 		// exibe mensagem de fim de jogo
 		se (fim_jogo) {
+			g.definir_cor(g.COR_PRETO)
 			g.definir_tamanho_texto(TAMANHO_TEXTO_FIM_JOGO)
 			g.desenhar_texto(POSICAO_TEXTO_FIM_JOGO, POSICAO_TEXTO_FIM_JOGO, "FIM DE JOGO")
 			g.definir_tamanho_texto(TAMANHO_TEXTO_PONTUACAO)
@@ -233,12 +238,16 @@ programa
 	}
 
 	funcao desenha_dino() {
-		anima_dino()
-		
 		se (nao dino_no_chao()) {
 			g.desenhar_imagem(posicao_x_dino, posicao_y_dino, grafico_dino_pulando)
 		} senao {
+			anima_dino()
 			g.desenhar_porcao_imagem(posicao_x_dino, posicao_y_dino, enquadramento_animacao_dino, 0, LARGURA_DINO, ALTURA_DINO, grafico_dino_caminhando)
+		}
+
+		se (DEBUG e colidindo) {
+			g.definir_cor(g.COR_VERMELHO)
+			g.desenhar_retangulo(posicao_x_dino, posicao_y_dino, LARGURA_DINO, ALTURA_DINO, falso, falso)
 		}
 	}
 
@@ -301,7 +310,7 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 4738; 
+ * @POSICAO-CURSOR = 349; 
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
